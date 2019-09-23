@@ -1,11 +1,12 @@
 package com.example.reminder
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -14,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 
+const val ADD_REMINDER_REQUEST_CODE = 100
 class MainActivity : AppCompatActivity() {
 
     private val reminders = arrayListOf<Reminder>()
@@ -53,22 +55,16 @@ class MainActivity : AppCompatActivity() {
 
         rvContent.addItemDecoration(DividerItemDecoration(this@MainActivity, DividerItemDecoration.VERTICAL))
 
-        fab.setOnClickListener(View.OnClickListener {
-            val reminder = etNewItem.text.toString()
-            addReminder(reminder)
-        })
+        fab.setOnClickListener {
+            startAddActivity()
+        }
 
         createItemTouchHelper().attachToRecyclerView(rvContent)
     }
 
-    private fun addReminder(reminder: String) {
-        if (reminder.isNotBlank()) {
-            reminders.add(Reminder(reminder))
-            reminderAdapter.notifyDataSetChanged()
-            etNewItem.text?.clear()
-        } else {
-            Snackbar.make(etNewItem, "You must fill in the input field!", Snackbar.LENGTH_SHORT).show()
-        }
+    private fun startAddActivity() {
+        val intent = Intent(this, AddActivity::class.java)
+        startActivityForResult(intent, ADD_REMINDER_REQUEST_CODE)
     }
 
     private fun createItemTouchHelper(): ItemTouchHelper {
@@ -89,5 +85,16 @@ class MainActivity : AppCompatActivity() {
         return ItemTouchHelper(callback)
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (resultCode == Activity.RESULT_OK) {
+            when (requestCode) {
+                ADD_REMINDER_REQUEST_CODE -> {
+                    val reminder = data!!.getParcelableExtra<Reminder>(EXTRA_REMINDER)
+                    reminders += reminder
+                    reminderAdapter.notifyDataSetChanged()
+                }
+            }
+        }
+    }
 
 }
